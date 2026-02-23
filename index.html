@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายชื่อสมาชิกพรรคการเมือง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-10">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-slate-900 mb-4">🏛️ ข้อมูลสมาชิกพรรคการเมือง</h1>
+            <p class="text-slate-500">จัดการข้อมูลผ่าน Google Sheets แบบ Real-time</p>
+        </header>
+
+        <div id="filter-buttons" class="flex flex-wrap justify-center gap-3 mb-12">
+            <button onclick="filterByParty('ทั้งหมด')" class="px-6 py-2 bg-slate-800 text-white rounded-full shadow-md hover:bg-slate-700 transition">ทั้งหมด</button>
+            </div>
+
+        <div id="loader" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+        </div>
+
+        <div id="list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.sheetbest.com/sheets/cd0e89ba-d51c-4a8b-b6f4-fbc845534dc5';
+        let allMembers = [];
+
+        async function init() {
+            try {
+                const response = await fetch(API_URL);
+                allMembers = await response.json();
+                
+                createFilterButtons();
+                renderMembers(allMembers);
+                document.getElementById('loader').classList.add('hidden');
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('loader').innerHTML = '<p class="text-red-500">ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบการตั้งค่า API</p>';
+            }
+        }
+
+        function createFilterButtons() {
+            // ดึงชื่อพรรคที่มีทั้งหมดออกมาแบบไม่ซ้ำกัน
+            const parties = [...new Set(allMembers.map(item => item['พรรค']))].filter(p => p);
+            const buttonContainer = document.getElementById('filter-buttons');
+            
+            parties.forEach(party => {
+                const btn = document.createElement('button');
+                btn.className = "px-6 py-2 bg-white text-slate-700 rounded-full shadow-sm border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition";
+                btn.innerText = party;
+                btn.onclick = () => filterByParty(party);
+                buttonContainer.appendChild(btn);
+            });
+        }
+
+        function filterByParty(partyName) {
+            if (partyName === 'ทั้งหมด') {
+                renderMembers(allMembers);
+            } else {
+                const filtered = allMembers.filter(m => m['พรรค'] === partyName);
+                renderMembers(filtered);
+            }
+        }
+
+        function renderMembers(data) {
+            const container = document.getElementById('list-container');
+            
+            container.innerHTML = data.map(person => {
+                const imageUrl = person['รูปภาพ (URL)'] || 'https://via.placeholder.com/400x500?text=No+Image';
+
+                return `
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col">
+                        <div class="w-full bg-slate-50">
+                            <img src="${imageUrl}" 
+                                 class="w-full h-auto object-contain block mx-auto" 
+                                 alt="${person['ชื่อ-นาสกุล สมุมติ']}"
+                                 style="max-height: 400px;">
+                        </div>
+                        
+                        <div class="p-8 text-center flex-grow flex flex-col justify-center">
+                            <span class="text-[10px] font-bold tracking-[0.2em] text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full inline-block mb-4 mx-auto uppercase">
+                                ${person['พรรค']}
+                            </span>
+                            <h2 class="text-xl font-bold text-slate-800 mb-1">
+                                ${person['ชื่อ-นาสกุล สมุมติ']}
+                            </h2>
+                            <p class="text-slate-500 text-sm mb-4">${person['ตำแหน่งในพรรค']}</p>
+                            <div class="mt-auto pt-4 border-t border-slate-50">
+                                <p class="text-[10px] font-mono text-slate-300">ID: ${person['รายชื่อ']}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>
