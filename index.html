@@ -48,18 +48,30 @@
         }
 
         function createFilterButtons() {
-            // ดึงชื่อพรรคที่มีทั้งหมดออกมาแบบไม่ซ้ำกัน
-            const parties = [...new Set(allMembers.map(item => item['พรรค']))].filter(p => p);
-            const buttonContainer = document.getElementById('filter-buttons');
-            
-            parties.forEach(party => {
-                const btn = document.createElement('button');
-                btn.className = "px-6 py-2 bg-white text-slate-700 rounded-full shadow-sm border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition";
-                btn.innerText = party;
-                btn.onclick = () => filterByParty(party);
-                buttonContainer.appendChild(btn);
-            });
-        }
+    // ดึงชื่อพรรคที่มีทั้งหมดออกมาแบบไม่ซ้ำกัน
+    const parties = [...new Set(allMembers.map(item => item['พรรค']))].filter(p => p);
+    const buttonContainer = document.getElementById('filter-buttons');
+    
+    // กำหนดสีประจำพรรค (สามารถแก้ไขชื่อพรรคและสีได้ที่นี่)
+    const partyColors = {
+        'พรรคก้าวหน้า': 'bg-orange-500 text-white',
+        'พรรคเพื่อไทย': 'bg-red-600 text-white',
+        'พรรคภูมิใจไทย': 'bg-blue-800 text-white',
+        'พรรคพลังประชารัฐ': 'bg-blue-400 text-white',
+        'พรรครวมไทยสร้างชาติ': 'bg-blue-900 text-white'
+    };
+
+    parties.forEach(party => {
+        const btn = document.createElement('button');
+        // ถ้าพรรคไหนไม่มีในรายชื่อสีด้านบน จะได้สีเทาอ่อนเป็นค่าเริ่มต้น (Default)
+        const colorClass = partyColors[party] || 'bg-white text-slate-700 border-slate-200';
+        
+        btn.className = `px-6 py-2 rounded-full shadow-sm border transition transform hover:scale-105 ${colorClass}`;
+        btn.innerText = party;
+        btn.onclick = () => filterByParty(party);
+        buttonContainer.appendChild(btn);
+    });
+}
 
         function filterByParty(partyName) {
             if (partyName === 'ทั้งหมด') {
